@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>คำนวณเงินค่าบัตรคอนเสิร์ต 🎤</title>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green: #1ed760;
+    --green-dark: #1db954;
+    --green-glow: rgba(30, 215, 96, 0.4);
+    --bg: #000000;
+    --surface: #121212;
+    --surface-1: #181818;
+    --surface-2: #242424;
+    --surface-3: #2a2a2a;
+    --line: rgba(255, 255, 255, 0.08);
+    --line-strong: rgba(255, 255, 255, 0.14);
+    --text: #ffffff;
+    --text-soft: #b3b3b3;
+    --text-mute: #6a6a6a;
+    --purple: #5038a0;
+    --orange: #ff6437;
+    --pink: #ff4d8d;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Prompt', sans-serif;
+    background: var(--bg);
+    min-height: 100vh;
+    color: var(--text);
+    padding: 0 0 60px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .container {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  /* Hero band — Spotify Wrapped vibe */
+  .hero {
+    background:
+      radial-gradient(ellipse at top left, rgba(30, 215, 96, 0.25), transparent 50%),
+      radial-gradient(ellipse at bottom right, rgba(80, 56, 160, 0.35), transparent 50%),
+      linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%);
+    padding: 36px 0 56px;
+    margin-bottom: 24px;
+    border-radius: 0 0 20px 20px;
+    border-bottom: 1px solid var(--line);
+  }
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .hero-text .eyebrow {
+    color: var(--green);
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .hero-text .eyebrow::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 12px var(--green-glow);
+    animation: pulse 1.6s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.7; transform: scale(1.4); }
+  }
+  header h1 {
+    font-size: 3rem;
+    font-weight: 800;
+    color: var(--text);
+    letter-spacing: -0.04em;
+    line-height: 1;
+  }
+  header h1 .accent {
+    color: var(--green);
+  }
+  header p {
+    color: var(--text-soft);
+    font-size: 0.95rem;
+    margin-top: 12px;
+    max-width: 560px;
+  }
+  .badge-live {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--line-strong);
+    color: var(--text-soft);
+    padding: 10px 16px;
+    border-radius: 100px;
+    font-size: 0.82rem;
+    font-weight: 500;
+    backdrop-filter: blur(10px);
+  }
+  .badge-live::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 0 4px rgba(30, 215, 96, 0.2);
+  }
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 20px;
+  }
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; }
+    header h1 { font-size: 2.1rem; }
+    .hero { padding: 28px 0 40px; margin-bottom: 18px; }
+  }
+
+  .card {
+    background: var(--surface-1);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 18px;
+    transition: background 0.2s;
+  }
+  .card:hover { background: var(--surface-2); }
+  .card h2 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    margin-bottom: 18px;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    letter-spacing: -0.01em;
+  }
+  .card-desc {
+    font-size: 0.85rem;
+    color: var(--text-soft);
+    margin-bottom: 18px;
+    margin-top: -10px;
+  }
+  .form-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr auto;
+    gap: 12px;
+    margin-bottom: 10px;
+    align-items: end;
+  }
+  .picker-row {
+    display: flex;
+    gap: 12px;
+    align-items: end;
+    flex-wrap: wrap;
+  }
+  .picker-row .btn-primary { flex-shrink: 0; }
+  @media (max-width: 600px) {
+    .form-row { grid-template-columns: 1fr 1fr; }
+    .picker-row .field { flex: 1 1 100% !important; }
+    .picker-row .btn-primary { width: 100%; }
+  }
+  .field label {
+    display: block;
+    font-size: 0.72rem;
+    color: var(--text-soft);
+    margin-bottom: 8px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  input, select {
+    width: 100%;
+    padding: 13px 14px;
+    background: var(--surface-3);
+    border: 1px solid transparent;
+    border-radius: 6px;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 0.95rem;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  input::placeholder { color: var(--text-mute); }
+  input:hover, select:hover { background: #333; }
+  input:focus, select:focus {
+    outline: none;
+    background: #333;
+    border-color: var(--text);
+  }
+  select {
+    appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M1 1l5 5 5-5'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    padding-right: 38px;
+    cursor: pointer;
+  }
+  select option {
+    background: var(--surface-2);
+    color: var(--text);
+    padding: 12px;
+  }
+  select:disabled {
+    background-color: var(--surface-1);
+    color: var(--text-mute);
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+  button {
+    padding: 14px 32px;
+    border: none;
+    border-radius: 500px;
+    font-family: inherit;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.1s, background 0.15s, box-shadow 0.2s;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    letter-spacing: 0.02em;
+  }
+  button:active { transform: scale(0.97); }
+  .btn-primary {
+    background: var(--green);
+    color: #000;
+  }
+  .btn-primary:hover {
+    background: #25e070;
+    transform: scale(1.03);
+  }
+  .btn-danger {
+    background: transparent;
+    color: var(--text-mute);
+    border: 1px solid var(--line-strong);
+    padding: 6px 14px;
+    font-size: 0.78rem;
+    font-weight: 500;
+    border-radius: 500px;
+  }
+  .btn-danger:hover {
+    color: var(--text);
+    border-color: var(--text);
+    background: transparent;
+  }
+
+  /* Concert list — Spotify playlist track row vibe */
+  .concert-item {
+    background: var(--surface-2);
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 8px;
+    transition: background 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .concert-item::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 4px;
+    background: var(--green);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .concert-item:hover { background: var(--surface-3); }
+  .concert-item:hover::before { opacity: 1; }
+  .concert-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+    gap: 12px;
+  }
+  .concert-name {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+  }
+  .concert-meta {
+    font-size: 0.82rem;
+    color: var(--text-soft);
+    margin-top: 4px;
+  }
+  .extras {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 10px;
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
+  }
+  .extras .field input { padding: 9px 12px; font-size: 0.9rem; }
+  .extras .field label { font-size: 0.66rem; }
+
+  .summary-stat {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--line);
+    font-size: 0.9rem;
+    color: var(--text-soft);
+  }
+  .summary-stat:last-child { border-bottom: none; }
+  .summary-stat .value {
+    font-weight: 700;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Total box — Wrapped style */
+  .total-box {
+    background: linear-gradient(135deg, #1ed760 0%, #169c46 100%);
+    border-radius: 12px;
+    padding: 28px 24px;
+    text-align: left;
+    margin: 20px 0 8px;
+    position: relative;
+    overflow: hidden;
+    color: #000;
+  }
+  .total-box::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 280px;
+    height: 280px;
+    background: radial-gradient(circle, rgba(255,255,255,0.18), transparent 70%);
+    pointer-events: none;
+  }
+  .total-box::after {
+    content: '#YourYear';
+    position: absolute;
+    bottom: 8px;
+    right: 16px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    opacity: 0.5;
+    letter-spacing: 0.05em;
+  }
+  .total-label {
+    font-size: 0.75rem;
+    color: rgba(0,0,0,0.7);
+    margin-bottom: 6px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    position: relative;
+  }
+  .total-amount {
+    font-size: 2.6rem;
+    font-weight: 800;
+    color: #000;
+    letter-spacing: -0.03em;
+    position: relative;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .savings-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .savings-cell {
+    background: var(--surface-2);
+    padding: 14px 8px;
+    border-radius: 8px;
+    text-align: center;
+    transition: background 0.2s;
+  }
+  .savings-cell:hover { background: var(--surface-3); }
+  .savings-cell .lbl {
+    font-size: 0.68rem;
+    color: var(--text-soft);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .savings-cell .val {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: var(--green);
+    margin-top: 6px;
+    font-variant-numeric: tabular-nums;
+  }
+  .empty {
+    text-align: center;
+    color: var(--text-mute);
+    padding: 40px 20px;
+    font-size: 0.9rem;
+  }
+  .empty .icon {
+    font-size: 2.6rem;
+    margin-bottom: 12px;
+    display: block;
+    opacity: 0.4;
+  }
+  .countdown {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(30, 215, 96, 0.15);
+    color: var(--green);
+    padding: 4px 10px;
+    border-radius: 100px;
+    font-size: 0.74rem;
+    margin-top: 8px;
+    font-weight: 700;
+  }
+  .source-tag {
+    display: inline-block;
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text-soft);
+    padding: 3px 10px;
+    border-radius: 100px;
+    font-size: 0.68rem;
+    margin-left: 6px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .info-box {
+    margin-top: 14px;
+    padding: 14px 16px;
+    background: var(--surface-2);
+    border-radius: 8px;
+    border-left: 3px solid var(--green);
+    font-size: 0.88rem;
+    color: var(--text-soft);
+    line-height: 1.6;
+  }
+  .info-box a { color: var(--green); text-decoration: none; font-weight: 600; }
+  .info-box a:hover { text-decoration: underline; }
+  details summary {
+    list-style: none;
+    color: var(--green);
+    font-size: 0.85rem;
+    font-weight: 700;
+    user-select: none;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  details summary::-webkit-details-marker { display: none; }
+  details summary::before {
+    content: '+';
+    display: inline-block;
+    margin-right: 6px;
+    transition: transform 0.2s;
+  }
+  details[open] summary::before {
+    content: '−';
+  }
+</style>
+</head>
+<body>
+<div class="hero">
+  <div class="container">
+    <header>
+      <div class="hero-text">
+        <div class="eyebrow">YOUR CONCERT WRAPPED · 2026</div>
+        <h1>วางแผนเงิน<br>ไป<span class="accent">คอนเสิร์ต</span>.</h1>
+        <p>คำนวณค่าใช้จ่ายและแผนการออมก่อนงานจริง · ข้อมูลจาก ThaiTicketMajor, Ticketmelon, Eventpop</p>
+      </div>
+      <div class="badge-live">UPDATED · MAY 2026</div>
+    </header>
+  </div>
+</div>
+
+<div class="container">
+  <div class="layout">
+    <div>
+      <div class="card">
+        <h2>🎫 เลือกคอนเสิร์ตที่อยากไป</h2>
+        <p class="card-desc">เลือกจากรายการคอนเสิร์ตที่กำลังจะมาถึงในไทย ข้อมูลจาก ThaiTicketMajor, Ticketmelon, Eventpop</p>
+
+        <div class="picker-row">
+          <div class="field" style="flex: 2; min-width: 200px;">
+            <label>คอนเสิร์ต</label>
+            <select id="concert-select" onchange="onConcertSelect()">
+              <option value="">เลือกคอนเสิร์ต...</option>
+            </select>
+          </div>
+          <div class="field" style="flex: 2; min-width: 180px;">
+            <label>ประเภทบัตร / ราคา</label>
+            <select id="tier-select" disabled>
+              <option value="">เลือกประเภทบัตร...</option>
+            </select>
+          </div>
+          <button class="btn-primary" onclick="addFromSelect()">เพิ่มเข้ารายการ</button>
+        </div>
+
+        <div id="concert-info" style="display:none;" class="info-box"></div>
+
+        <details style="margin-top: 18px;">
+          <summary>เพิ่มคอนเสิร์ตเอง (ไม่อยู่ในรายการ)</summary>
+          <div class="form-row" style="margin-top: 12px;">
+            <div class="field">
+              <label>ชื่อคอนเสิร์ต / ศิลปิน</label>
+              <input type="text" id="name" placeholder="เช่น BLACKPINK Live in Bangkok">
+            </div>
+            <div class="field">
+              <label>วันคอนเสิร์ต</label>
+              <input type="date" id="date">
+            </div>
+            <div class="field">
+              <label>ราคาบัตร (฿)</label>
+              <input type="number" id="price" placeholder="0" min="0">
+            </div>
+            <button class="btn-primary" onclick="addConcert()">เพิ่ม</button>
+          </div>
+        </details>
+      </div>
+
+      <div class="card">
+        <h2>📋 รายการคอนเสิร์ตของคุณ</h2>
+        <div id="concert-list">
+          <div class="empty"><span class="icon">🎵</span>ยังไม่มีคอนเสิร์ตในรายการ<br>เลือกจากด้านบนเพื่อเริ่มคำนวณเลย</div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="card" style="position: sticky; top: 20px;">
+        <h2>💰 สรุปค่าใช้จ่าย</h2>
+        <div id="summary">
+          <div class="summary-stat"><span>จำนวนคอนเสิร์ต</span><span class="value" id="stat-count">0</span></div>
+          <div class="summary-stat"><span>🎫 ค่าบัตรรวม</span><span class="value" id="stat-tickets">฿0</span></div>
+          <div class="summary-stat"><span>🚌 ค่าเดินทาง</span><span class="value" id="stat-transport">฿0</span></div>
+          <div class="summary-stat"><span>🏨 ค่าที่พัก</span><span class="value" id="stat-hotel">฿0</span></div>
+          <div class="summary-stat"><span>🍜 ค่าอาหาร</span><span class="value" id="stat-food">฿0</span></div>
+          <div class="summary-stat"><span>👕 ค่าเสื้อ / Merch</span><span class="value" id="stat-merch">฿0</span></div>
+        </div>
+
+        <div class="total-box">
+          <div class="total-label">รวมทั้งหมด</div>
+          <div class="total-amount" id="total">฿0</div>
+        </div>
+
+        <h2 style="font-size: 1rem; margin-top: 22px;">📅 แผนการเก็บเงิน</h2>
+        <p style="font-size: 0.82rem; color: var(--muted); margin-bottom: 10px;">ถึงคอนเสิร์ตใกล้ที่สุด: <span id="next-concert" style="color:var(--ink); font-weight:500;">-</span></p>
+        <div class="savings-grid">
+          <div class="savings-cell"><div class="lbl">ต่อวัน</div><div class="val" id="save-day">-</div></div>
+          <div class="savings-cell"><div class="lbl">ต่อสัปดาห์</div><div class="val" id="save-week">-</div></div>
+          <div class="savings-cell"><div class="lbl">ต่อเดือน</div><div class="val" id="save-month">-</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let concerts = JSON.parse(localStorage.getItem('concerts') || '[]');
+
+  const FEATURED = [
+    {
+      name: "LANDOKMAI",
+      date: "2026-05-28",
+      venue: "Melt Livehouse Cloud 11",
+      source: "Ticketmelon",
+      url: "https://www.ticketmelon.com/meltlivehouse/landokmai1",
+      tiers: [
+        { name: "Early Bird", price: 350 }
+      ]
+    },
+    {
+      name: "Matt Maltese × Phum Viphurit (Road to Melt Festival)",
+      date: "2026-08-16",
+      venue: "Melt Livehouse Cloud 11",
+      source: "Ticketmelon",
+      url: "https://www.ticketmelon.com/meltlivehouse/MattMaltesePhumViphurit",
+      tiers: [
+        { name: "General Admission", price: 500 },
+        { name: "Melt Deluxe (Early Entry + Poster + VIP Zone)", price: 1000 },
+        { name: "VVIP (Meet & Greet กับ Phum)", price: 1500 }
+      ]
+    },
+    {
+      name: "XG WORLD TOUR: THE CORE",
+      date: "2026-07-19",
+      venue: "Impact Arena เมืองทองธานี",
+      source: "Eventpop/TTM",
+      url: "https://www.thaiticketmajor.com/concert/xg-world-tour-the-core-in-bangkok.html",
+      tiers: [
+        { name: "นั่งโซน 1", price: 2500 },
+        { name: "นั่งโซน 2", price: 3500 },
+        { name: "นั่งโซน 3", price: 4500 },
+        { name: "นั่งโซน 4", price: 5000 },
+        { name: "นั่งโซน 5", price: 5500 },
+        { name: "Xtraordinary Version G", price: 6500 },
+        { name: "Xtraordinary Version X", price: 7800 }
+      ]
+    },
+    {
+      name: "The Weeknd: After Hours Til Dawn",
+      date: "2026-10-11",
+      venue: "ราชมังคลากีฬาสถาน",
+      source: "ThaiTicketMajor",
+      url: "https://www.thaiticketmajor.com/concert/",
+      tiers: [
+        { name: "นั่ง", price: 2835 },
+        { name: "Standing", price: 4335 },
+        { name: "Early Entry", price: 5335 },
+        { name: "นั่ง Premium", price: 8935 },
+        { name: "Early Entry 1st Tier", price: 11355 },
+        { name: "Gold Lounge VIP", price: 17935 },
+        { name: "Ultimate VIP", price: 21935 }
+      ]
+    },
+    {
+      name: "BABYMONSTER WORLD TOUR [CHOOM]",
+      date: "2026-11-07",
+      venue: "Impact Arena เมืองทองธานี",
+      source: "ThaiTicketMajor",
+      url: "https://www.thaiticketmajor.com/concert/2026-27-babymonster-world-tour-choom-in-bangkok.html",
+      tiers: [
+        { name: "นั่งโซน 1", price: 2800 },
+        { name: "นั่งโซน 2", price: 3800 },
+        { name: "นั่งโซน 3", price: 4800 },
+        { name: "นั่งโซน 4", price: 5300 },
+        { name: "นั่งโซน 5", price: 5800 },
+        { name: "นั่ง Premium", price: 6300 },
+        { name: "VIP", price: 7300 }
+      ]
+    },
+    {
+      name: "BTS WORLD TOUR 'ARIRANG'",
+      date: "2026-12-03",
+      venue: "ราชมังคลากีฬาสถาน",
+      source: "ThaiTicketMajor",
+      url: "https://www.thaiticketmajor.com/concert/bts-world-tour-arirang-in-bangkok.html",
+      tiers: [
+        { name: "นั่งทั่วไป", price: 3300 },
+        { name: "VIP Package (Zone V + Soundcheck)", price: 7800 }
+      ]
+    },
+    {
+      name: "EDC Thailand 2026",
+      date: "2026-12-18",
+      venue: "Rhythm Park, ภูเก็ต",
+      source: "Eventpop",
+      url: "https://www.eventpop.me/e/89319/edc-thailand-2026",
+      tiers: [
+        { name: "GA 3-Day", price: 7090 },
+        { name: "VIP 3-Day", price: 13390 }
+      ]
+    }
+  ];
+
+  const fmt = n => '฿' + Math.round(n).toLocaleString('th-TH');
+
+  function getUpcomingFeatured() {
+    const today = new Date(); today.setHours(0,0,0,0);
+    return FEATURED.filter(f => new Date(f.date) >= today)
+      .sort((a, b) => new Date(a.date) - new Date(b.date));
+  }
+
+  function populateConcertSelect() {
+    const upcoming = getUpcomingFeatured();
+    const sel = document.getElementById('concert-select');
+    sel.innerHTML = '<option value="">เลือกคอนเสิร์ต...</option>' + upcoming.map((f, idx) => {
+      const dateFmt = new Date(f.date).toLocaleDateString('th-TH', { month: 'short', day: 'numeric' });
+      return `<option value="${idx}">${dateFmt} · ${escapeHtml(f.name)}</option>`;
+    }).join('');
+  }
+
+  function onConcertSelect() {
+    const idx = document.getElementById('concert-select').value;
+    const tierSel = document.getElementById('tier-select');
+    const info = document.getElementById('concert-info');
+
+    if (idx === '') {
+      tierSel.innerHTML = '<option value="">เลือกประเภทบัตร...</option>';
+      tierSel.disabled = true;
+      info.style.display = 'none';
+      return;
+    }
+
+    const f = getUpcomingFeatured()[idx];
+    const days = daysUntil(f.date);
+    const dateFmt = new Date(f.date).toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
+
+    info.style.display = 'block';
+    info.innerHTML = `📅 ${dateFmt} · 📍 ${escapeHtml(f.venue)} · ⏰ อีก ${days} วัน <span class="source-tag">${f.source}</span>`;
+
+    if (f.tiers.length === 0) {
+      tierSel.innerHTML = `<option value="">ราคายังไม่ระบุ - <a href="${f.url}" target="_blank">ดูที่เว็บ</a></option>`;
+      tierSel.disabled = true;
+      info.innerHTML += `<div style="margin-top:6px;"><a href="${f.url}" target="_blank" style="color:#ff6b9d;">→ ดูราคาที่เว็บแหล่งข้อมูล</a></div>`;
+    } else {
+      tierSel.innerHTML = '<option value="">เลือกประเภทบัตร...</option>' + f.tiers.map((t, ti) =>
+        `<option value="${ti}">${escapeHtml(t.name)} — ฿${t.price.toLocaleString('th-TH')}</option>`
+      ).join('');
+      tierSel.disabled = false;
+    }
+  }
+
+  function addFromSelect() {
+    const idx = document.getElementById('concert-select').value;
+    const tierIdx = document.getElementById('tier-select').value;
+    if (idx === '' || tierIdx === '') {
+      alert('เลือกคอนเสิร์ตและประเภทบัตรก่อน');
+      return;
+    }
+    const f = getUpcomingFeatured()[idx];
+    const tier = f.tiers[tierIdx];
+    concerts.push({
+      id: Date.now(),
+      name: `${f.name} (${tier.name})`,
+      date: f.date,
+      price: tier.price,
+      transport: 0, hotel: 0, food: 0, merch: 0
+    });
+
+    document.getElementById('concert-select').value = '';
+    onConcertSelect();
+    save();
+    render();
+  }
+
+  function addConcert() {
+    const name = document.getElementById('name').value.trim();
+    const date = document.getElementById('date').value;
+    const price = parseFloat(document.getElementById('price').value) || 0;
+
+    if (!name || !date || price <= 0) {
+      alert('กรอกชื่อ วันที่ และราคาบัตรให้ครบ');
+      return;
+    }
+
+    concerts.push({
+      id: Date.now(),
+      name, date, price,
+      transport: 0, hotel: 0, food: 0, merch: 0
+    });
+
+    document.getElementById('name').value = '';
+    document.getElementById('date').value = '';
+    document.getElementById('price').value = '';
+
+    save();
+    render();
+  }
+
+  function removeConcert(id) {
+    concerts = concerts.filter(c => c.id !== id);
+    save();
+    render();
+  }
+
+  function updateExtra(id, field, value) {
+    const c = concerts.find(c => c.id === id);
+    if (c) {
+      c[field] = parseFloat(value) || 0;
+      save();
+      updateSummary();
+    }
+  }
+
+  function save() {
+    localStorage.setItem('concerts', JSON.stringify(concerts));
+  }
+
+  function daysUntil(dateStr) {
+    const target = new Date(dateStr);
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    return Math.ceil((target - today) / 86400000);
+  }
+
+  function render() {
+    const list = document.getElementById('concert-list');
+    if (concerts.length === 0) {
+      list.innerHTML = '<div class="empty">ยังไม่มีคอนเสิร์ตในรายการ<br>เพิ่มคอนเสิร์ตจากด้านบนเพื่อเริ่มคำนวณ</div>';
+    } else {
+      concerts.sort((a, b) => new Date(a.date) - new Date(b.date));
+      list.innerHTML = concerts.map(c => {
+        const days = daysUntil(c.date);
+        const countdownText = days < 0 ? 'ผ่านไปแล้ว' : days === 0 ? 'วันนี้!' : `อีก ${days} วัน`;
+        const dateFmt = new Date(c.date).toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
+        return `
+          <div class="concert-item">
+            <div class="concert-header">
+              <div>
+                <div class="concert-name">${escapeHtml(c.name)}</div>
+                <div class="concert-meta">📅 ${dateFmt} · 🎫 ${fmt(c.price)}</div>
+                <div class="countdown">⏰ ${countdownText}</div>
+              </div>
+              <button class="btn-danger" onclick="removeConcert(${c.id})">ลบ</button>
+            </div>
+            <div class="extras">
+              <div class="field">
+                <label>🚌 เดินทาง</label>
+                <input type="number" value="${c.transport}" min="0" oninput="updateExtra(${c.id}, 'transport', this.value)">
+              </div>
+              <div class="field">
+                <label>🏨 ที่พัก</label>
+                <input type="number" value="${c.hotel}" min="0" oninput="updateExtra(${c.id}, 'hotel', this.value)">
+              </div>
+              <div class="field">
+                <label>🍜 อาหาร</label>
+                <input type="number" value="${c.food}" min="0" oninput="updateExtra(${c.id}, 'food', this.value)">
+              </div>
+              <div class="field">
+                <label>👕 Merch</label>
+                <input type="number" value="${c.merch}" min="0" oninput="updateExtra(${c.id}, 'merch', this.value)">
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+    updateSummary();
+  }
+
+  function escapeHtml(s) {
+    return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  function updateSummary() {
+    const tickets = concerts.reduce((s, c) => s + c.price, 0);
+    const transport = concerts.reduce((s, c) => s + c.transport, 0);
+    const hotel = concerts.reduce((s, c) => s + c.hotel, 0);
+    const food = concerts.reduce((s, c) => s + c.food, 0);
+    const merch = concerts.reduce((s, c) => s + c.merch, 0);
+    const total = tickets + transport + hotel + food + merch;
+
+    document.getElementById('stat-count').textContent = concerts.length;
+    document.getElementById('stat-tickets').textContent = fmt(tickets);
+    document.getElementById('stat-transport').textContent = fmt(transport);
+    document.getElementById('stat-hotel').textContent = fmt(hotel);
+    document.getElementById('stat-food').textContent = fmt(food);
+    document.getElementById('stat-merch').textContent = fmt(merch);
+    document.getElementById('total').textContent = fmt(total);
+
+    const upcoming = concerts.filter(c => daysUntil(c.date) > 0).sort((a,b) => new Date(a.date) - new Date(b.date))[0];
+    if (upcoming && total > 0) {
+      const days = daysUntil(upcoming.date);
+      const dateFmt = new Date(upcoming.date).toLocaleDateString('th-TH', { day: 'numeric', month: 'short' });
+      document.getElementById('next-concert').textContent = `${upcoming.name} (${dateFmt}, อีก ${days} วัน)`;
+      document.getElementById('save-day').textContent = fmt(total / days);
+      document.getElementById('save-week').textContent = fmt(total / (days / 7));
+      document.getElementById('save-month').textContent = fmt(total / (days / 30));
+    } else {
+      document.getElementById('next-concert').textContent = '-';
+      document.getElementById('save-day').textContent = '-';
+      document.getElementById('save-week').textContent = '-';
+      document.getElementById('save-month').textContent = '-';
+    }
+  }
+
+  document.getElementById('date').min = new Date().toISOString().split('T')[0];
+  populateConcertSelect();
+  render();
+</script>
+</body>
+</html>
