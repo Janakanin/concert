@@ -467,6 +467,172 @@
   details[open] summary::before {
     content: '−';
   }
+
+  /* Genre filter chips */
+  .genre-filter {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+  }
+  .chip {
+    background: var(--surface-3);
+    color: var(--text-soft);
+    border: none;
+    padding: 8px 14px;
+    border-radius: 100px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: inherit;
+  }
+  .chip:hover {
+    background: #353535;
+    color: var(--text);
+  }
+  .chip.active {
+    background: var(--text);
+    color: #000;
+  }
+
+  /* Buy button + heart in info-box */
+  .info-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+  }
+  .btn-buy {
+    background: var(--green);
+    color: #000;
+    text-decoration: none;
+    padding: 9px 18px;
+    border-radius: 500px;
+    font-weight: 700;
+    font-size: 0.82rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: transform 0.15s, background 0.15s;
+  }
+  .btn-buy:hover {
+    background: #25e070;
+    transform: scale(1.03);
+  }
+  .btn-heart {
+    background: transparent;
+    border: 1px solid var(--line-strong);
+    color: var(--text-soft);
+    padding: 9px 16px;
+    border-radius: 500px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: inherit;
+  }
+  .btn-heart:hover {
+    border-color: var(--text);
+    color: var(--text);
+  }
+  .btn-heart.active {
+    background: rgba(255, 77, 141, 0.15);
+    border-color: var(--pink);
+    color: var(--pink);
+  }
+
+  /* Sale status badge */
+  .sale-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 100px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    margin-left: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .sale-on { background: rgba(30, 215, 96, 0.15); color: var(--green); }
+  .sale-pre { background: rgba(255, 100, 55, 0.15); color: var(--orange); }
+  .sale-soon { background: rgba(255, 77, 141, 0.15); color: var(--pink); }
+
+  .genre-tag {
+    display: inline-block;
+    background: rgba(80, 56, 160, 0.25);
+    color: #a48cf0;
+    padding: 3px 10px;
+    border-radius: 100px;
+    font-size: 0.68rem;
+    margin-left: 6px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  /* Wishlist card */
+  .count-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--pink);
+    color: #000;
+    border-radius: 100px;
+    padding: 2px 10px;
+    font-size: 0.78rem;
+    font-weight: 800;
+    margin-left: 6px;
+    min-width: 24px;
+  }
+  .wish-item {
+    display: grid;
+    grid-template-columns: 40px 1fr auto auto;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: var(--surface-2);
+    border-radius: 8px;
+    margin-bottom: 8px;
+    transition: background 0.2s;
+  }
+  .wish-item:hover { background: var(--surface-3); }
+  .wish-rank {
+    color: var(--text-mute);
+    font-weight: 800;
+    font-size: 1.1rem;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+  }
+  .wish-info .wname {
+    font-weight: 700;
+    color: var(--text);
+    font-size: 0.92rem;
+    line-height: 1.2;
+  }
+  .wish-info .wmeta {
+    color: var(--text-soft);
+    font-size: 0.76rem;
+    margin-top: 3px;
+  }
+  .wish-price {
+    color: var(--green);
+    font-weight: 800;
+    font-size: 0.95rem;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .wish-remove {
+    background: transparent;
+    color: var(--text-mute);
+    border: none;
+    cursor: pointer;
+    padding: 4px 8px;
+    font-size: 1.2rem;
+    border-radius: 50%;
+  }
+  .wish-remove:hover { color: var(--text); background: rgba(255,255,255,0.08); }
 </style>
 </head>
 <body>
@@ -489,6 +655,8 @@
       <div class="card">
         <h2>🎫 เลือกคอนเสิร์ตที่อยากไป</h2>
         <p class="card-desc">เลือกจากรายการคอนเสิร์ตที่กำลังจะมาถึงในไทย ข้อมูลจาก ThaiTicketMajor, Ticketmelon, Eventpop</p>
+
+        <div class="genre-filter" id="genre-filter"></div>
 
         <div class="picker-row">
           <div class="field" style="flex: 2; min-width: 200px;">
@@ -526,6 +694,12 @@
             <button class="btn-primary" onclick="addConcert()">เพิ่ม</button>
           </div>
         </details>
+      </div>
+
+      <div class="card" id="wishlist-card" style="display:none;">
+        <h2>❤️ Wishlist <span class="count-pill" id="wishlist-count">0</span></h2>
+        <p class="card-desc">เปรียบเทียบคอนเสิร์ตที่อยู่ใน wishlist · ราคาเริ่มต้น/วันที่/แหล่งขาย</p>
+        <div id="wishlist-list"></div>
       </div>
 
       <div class="card">
@@ -573,29 +747,90 @@
       name: "LANDOKMAI",
       date: "2026-05-28",
       venue: "Melt Livehouse Cloud 11",
+      genre: "Indie",
       source: "Ticketmelon",
+      saleStatus: "on-sale",
       url: "https://www.ticketmelon.com/meltlivehouse/landokmai1",
       tiers: [
         { name: "Early Bird", price: 350 }
       ]
     },
     {
-      name: "Matt Maltese × Phum Viphurit (Road to Melt Festival)",
-      date: "2026-08-16",
-      venue: "Melt Livehouse Cloud 11",
-      source: "Ticketmelon",
-      url: "https://www.ticketmelon.com/meltlivehouse/MattMaltesePhumViphurit",
+      name: "2026 CNBLUE LIVE WORLD TOUR '3LOGY'",
+      date: "2026-06-06",
+      venue: "Thunder Dome เมืองทองธานี",
+      genre: "K-Rock",
+      source: "ThaiTicketMajor",
+      saleStatus: "on-sale",
+      url: "https://www.thaiticketmajor.com/concert/",
       tiers: [
-        { name: "General Admission", price: 500 },
-        { name: "Melt Deluxe (Early Entry + Poster + VIP Zone)", price: 1000 },
-        { name: "VVIP (Meet & Greet กับ Phum)", price: 1500 }
+        { name: "นั่งโซน 1", price: 3800 },
+        { name: "นั่งโซน 2", price: 4800 },
+        { name: "นั่งโซน 3", price: 5800 },
+        { name: "VIP", price: 6800 }
+      ]
+    },
+    {
+      name: "Daniel Caesar - Son of Spergy Tour",
+      date: "2026-06-09",
+      venue: "Impact Arena เมืองทองธานี",
+      genre: "R&B",
+      source: "Eventpop",
+      saleStatus: "on-sale",
+      url: "https://www.eventpop.me/g/concert",
+      tiers: [
+        { name: "Zone Level 3-4", price: 1900 },
+        { name: "Zone STA/STB", price: 2300 },
+        { name: "Zone STA/STB Premium", price: 3300 },
+        { name: "Zone Level 3-4 Premium", price: 4500 },
+        { name: "VIP Package", price: 6400 }
+      ]
+    },
+    {
+      name: "ใหม่ เจริญปุระ MTERTAINMENT CONCERT",
+      date: "2026-06-19",
+      venue: "Impact Arena เมืองทองธานี",
+      genre: "T-Pop",
+      source: "Eventpop",
+      saleStatus: "on-sale",
+      url: "https://www.eventpop.me/g/concert",
+      tiers: [
+        { name: "นั่งโซน 1", price: 1500 },
+        { name: "นั่งโซน 2", price: 2000 },
+        { name: "นั่งโซน 3", price: 2500 },
+        { name: "นั่งโซน 4", price: 3000 },
+        { name: "นั่งโซน 5", price: 4000 },
+        { name: "นั่งโซน 6", price: 4500 },
+        { name: "นั่ง Premium", price: 5000 },
+        { name: "VIP", price: 5500 }
+      ]
+    },
+    {
+      name: "MAMA Presents CLUB 30 CONCERT",
+      date: "2026-06-27",
+      venue: "Impact Arena เมืองทองธานี",
+      genre: "T-Pop",
+      source: "Eventpop",
+      saleStatus: "on-sale",
+      url: "https://www.eventpop.me/g/concert",
+      tiers: [
+        { name: "นั่งโซน 1", price: 1800 },
+        { name: "นั่งโซน 2", price: 2500 },
+        { name: "นั่งโซน 3", price: 3500 },
+        { name: "นั่งโซน 4", price: 4500 },
+        { name: "นั่งโซน 5", price: 5500 },
+        { name: "นั่ง Premium", price: 6500 },
+        { name: "VIP", price: 7000 }
       ]
     },
     {
       name: "XG WORLD TOUR: THE CORE",
       date: "2026-07-19",
       venue: "Impact Arena เมืองทองธานี",
+      genre: "J-Pop",
       source: "Eventpop/TTM",
+      saleStatus: "on-sale",
+      saleNote: "เปิดขาย 8 พ.ค. 2026",
       url: "https://www.thaiticketmajor.com/concert/xg-world-tour-the-core-in-bangkok.html",
       tiers: [
         { name: "นั่งโซน 1", price: 2500 },
@@ -608,10 +843,43 @@
       ]
     },
     {
+      name: "HONNE Live in Bangkok",
+      date: "2026-07-25",
+      venue: "KBank Siam Pic-Ganesha Theatre",
+      genre: "Indie",
+      source: "Ticketmelon",
+      saleStatus: "on-sale",
+      url: "https://www.ticketmelon.com/",
+      tiers: [
+        { name: "Someone That Loves You", price: 2800 },
+        { name: "Day 1", price: 3300 },
+        { name: "no song without you", price: 3800 },
+        { name: "Location Unknown", price: 4300 },
+        { name: "Warm on a Cold Night", price: 6900 }
+      ]
+    },
+    {
+      name: "Matt Maltese × Phum Viphurit (Road to Melt Festival)",
+      date: "2026-08-16",
+      venue: "Melt Livehouse Cloud 11",
+      genre: "Indie",
+      source: "Ticketmelon",
+      saleStatus: "on-sale",
+      url: "https://www.ticketmelon.com/meltlivehouse/MattMaltesePhumViphurit",
+      tiers: [
+        { name: "General Admission", price: 500 },
+        { name: "Melt Deluxe (Early Entry + Poster + VIP Zone)", price: 1000 },
+        { name: "VVIP (Meet & Greet กับ Phum)", price: 1500 }
+      ]
+    },
+    {
       name: "The Weeknd: After Hours Til Dawn",
       date: "2026-10-11",
       venue: "ราชมังคลากีฬาสถาน",
+      genre: "Pop",
       source: "ThaiTicketMajor",
+      saleStatus: "on-sale",
+      saleNote: "เปิดขาย 21 พ.ค. 2026",
       url: "https://www.thaiticketmajor.com/concert/",
       tiers: [
         { name: "นั่ง", price: 2835 },
@@ -627,7 +895,10 @@
       name: "BABYMONSTER WORLD TOUR [CHOOM]",
       date: "2026-11-07",
       venue: "Impact Arena เมืองทองธานี",
+      genre: "K-Pop",
       source: "ThaiTicketMajor",
+      saleStatus: "on-sale",
+      saleNote: "General Sale 30 พ.ค. 2026",
       url: "https://www.thaiticketmajor.com/concert/2026-27-babymonster-world-tour-choom-in-bangkok.html",
       tiers: [
         { name: "นั่งโซน 1", price: 2800 },
@@ -643,7 +914,10 @@
       name: "BTS WORLD TOUR 'ARIRANG'",
       date: "2026-12-03",
       venue: "ราชมังคลากีฬาสถาน",
+      genre: "K-Pop",
       source: "ThaiTicketMajor",
+      saleStatus: "presale",
+      saleNote: "ARMY Presale 9 มิ.ย. 2026",
       url: "https://www.thaiticketmajor.com/concert/bts-world-tour-arirang-in-bangkok.html",
       tiers: [
         { name: "นั่งทั่วไป", price: 3300 },
@@ -654,7 +928,9 @@
       name: "EDC Thailand 2026",
       date: "2026-12-18",
       venue: "Rhythm Park, ภูเก็ต",
+      genre: "EDM",
       source: "Eventpop",
+      saleStatus: "on-sale",
       url: "https://www.eventpop.me/e/89319/edc-thailand-2026",
       tiers: [
         { name: "GA 3-Day", price: 7090 },
@@ -663,17 +939,112 @@
     }
   ];
 
+  let wishlist = JSON.parse(localStorage.getItem('wishlist') || '[]');
+  let filterGenre = 'all';
+
   const fmt = n => '฿' + Math.round(n).toLocaleString('th-TH');
 
   function getUpcomingFeatured() {
     const today = new Date(); today.setHours(0,0,0,0);
     return FEATURED.filter(f => new Date(f.date) >= today)
+      .filter(f => filterGenre === 'all' || f.genre === filterGenre)
       .sort((a, b) => new Date(a.date) - new Date(b.date));
+  }
+
+  function renderGenreFilter() {
+    const today = new Date(); today.setHours(0,0,0,0);
+    const upcomingAll = FEATURED.filter(f => new Date(f.date) >= today);
+    const genres = Array.from(new Set(upcomingAll.map(f => f.genre))).sort();
+    const wrap = document.getElementById('genre-filter');
+    wrap.innerHTML = `<button class="chip ${filterGenre === 'all' ? 'active' : ''}" onclick="setFilter('all')">ทั้งหมด · ${upcomingAll.length}</button>` +
+      genres.map(g => {
+        const count = upcomingAll.filter(f => f.genre === g).length;
+        return `<button class="chip ${filterGenre === g ? 'active' : ''}" onclick="setFilter('${g}')">${g} · ${count}</button>`;
+      }).join('');
+  }
+
+  function setFilter(g) {
+    filterGenre = g;
+    document.getElementById('concert-select').value = '';
+    onConcertSelect();
+    renderGenreFilter();
+    populateConcertSelect();
+  }
+
+  function getMinPrice(f) {
+    return f.tiers.length ? Math.min(...f.tiers.map(t => t.price)) : 0;
+  }
+
+  function saleBadgeHtml(f) {
+    if (f.saleStatus === 'on-sale') return `<span class="sale-badge sale-on">● เปิดขายแล้ว</span>`;
+    if (f.saleStatus === 'presale') return `<span class="sale-badge sale-pre">Presale</span>`;
+    if (f.saleStatus === 'soon') return `<span class="sale-badge sale-soon">เร็วๆ นี้</span>`;
+    return '';
+  }
+
+  function isInWishlist(name) {
+    return wishlist.includes(name);
+  }
+
+  function toggleWishlist(name) {
+    if (isInWishlist(name)) {
+      wishlist = wishlist.filter(w => w !== name);
+    } else {
+      wishlist.push(name);
+    }
+    localStorage.setItem('wishlist', JSON.stringify(wishlist));
+    onConcertSelect();
+    renderWishlist();
+  }
+
+  function removeFromWishlist(name) {
+    wishlist = wishlist.filter(w => w !== name);
+    localStorage.setItem('wishlist', JSON.stringify(wishlist));
+    onConcertSelect();
+    renderWishlist();
+  }
+
+  function renderWishlist() {
+    const card = document.getElementById('wishlist-card');
+    const list = document.getElementById('wishlist-list');
+    const countEl = document.getElementById('wishlist-count');
+
+    const items = wishlist
+      .map(name => FEATURED.find(f => f.name === name))
+      .filter(Boolean)
+      .filter(f => new Date(f.date) >= new Date(new Date().setHours(0,0,0,0)))
+      .sort((a, b) => getMinPrice(a) - getMinPrice(b));
+
+    if (items.length === 0) {
+      card.style.display = 'none';
+      return;
+    }
+    card.style.display = 'block';
+    countEl.textContent = items.length;
+    list.innerHTML = items.map((f, i) => {
+      const dateFmt = new Date(f.date).toLocaleDateString('th-TH', { month: 'short', day: 'numeric' });
+      const min = getMinPrice(f);
+      return `
+        <div class="wish-item">
+          <div class="wish-rank">${i + 1}</div>
+          <div class="wish-info">
+            <div class="wname">${escapeHtml(f.name)}</div>
+            <div class="wmeta">${dateFmt} · ${escapeHtml(f.venue)} · ${f.genre}</div>
+          </div>
+          <div class="wish-price">เริ่ม ฿${min.toLocaleString('th-TH')}</div>
+          <button class="wish-remove" onclick="removeFromWishlist('${f.name.replace(/'/g, "\\'")}')" title="ลบจาก wishlist">×</button>
+        </div>
+      `;
+    }).join('');
   }
 
   function populateConcertSelect() {
     const upcoming = getUpcomingFeatured();
     const sel = document.getElementById('concert-select');
+    if (upcoming.length === 0) {
+      sel.innerHTML = '<option value="">ไม่พบคอนเสิร์ตในแนวนี้</option>';
+      return;
+    }
     sel.innerHTML = '<option value="">เลือกคอนเสิร์ต...</option>' + upcoming.map((f, idx) => {
       const dateFmt = new Date(f.date).toLocaleDateString('th-TH', { month: 'short', day: 'numeric' });
       return `<option value="${idx}">${dateFmt} · ${escapeHtml(f.name)}</option>`;
@@ -697,12 +1068,25 @@
     const dateFmt = new Date(f.date).toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
 
     info.style.display = 'block';
-    info.innerHTML = `📅 ${dateFmt} · 📍 ${escapeHtml(f.venue)} · ⏰ อีก ${days} วัน <span class="source-tag">${f.source}</span>`;
+    const liked = isInWishlist(f.name);
+    const saleNoteHtml = f.saleNote ? `<div style="margin-top:6px; color:var(--text-soft); font-size:0.82rem;">🎟️ ${escapeHtml(f.saleNote)}</div>` : '';
+    info.innerHTML = `
+      <div>📅 ${dateFmt} · 📍 ${escapeHtml(f.venue)} · ⏰ อีก ${days} วัน</div>
+      <div style="margin-top:6px;">
+        <span class="genre-tag">${f.genre}</span>
+        <span class="source-tag">${f.source}</span>
+        ${saleBadgeHtml(f)}
+      </div>
+      ${saleNoteHtml}
+      <div class="info-actions">
+        <a href="${f.url}" target="_blank" class="btn-buy">🎫 ซื้อบัตร →</a>
+        <button class="btn-heart ${liked ? 'active' : ''}" onclick="toggleWishlist('${f.name.replace(/'/g, "\\'")}')">${liked ? '♥ ใน Wishlist' : '♡ Wishlist'}</button>
+      </div>
+    `;
 
     if (f.tiers.length === 0) {
-      tierSel.innerHTML = `<option value="">ราคายังไม่ระบุ - <a href="${f.url}" target="_blank">ดูที่เว็บ</a></option>`;
+      tierSel.innerHTML = `<option value="">ราคายังไม่ระบุ - ดูที่เว็บ</option>`;
       tierSel.disabled = true;
-      info.innerHTML += `<div style="margin-top:6px;"><a href="${f.url}" target="_blank" style="color:#ff6b9d;">→ ดูราคาที่เว็บแหล่งข้อมูล</a></div>`;
     } else {
       tierSel.innerHTML = '<option value="">เลือกประเภทบัตร...</option>' + f.tiers.map((t, ti) =>
         `<option value="${ti}">${escapeHtml(t.name)} — ฿${t.price.toLocaleString('th-TH')}</option>`
@@ -866,7 +1250,9 @@
   }
 
   document.getElementById('date').min = new Date().toISOString().split('T')[0];
+  renderGenreFilter();
   populateConcertSelect();
+  renderWishlist();
   render();
 </script>
 </body>
